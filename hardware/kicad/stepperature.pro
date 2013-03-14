@@ -1,8 +1,8 @@
-update=3/10/2013 7:21:35 PM
-last_client=eeschema
+update=3/14/2013 1:16:22 AM
+last_client=kicad
 [eeschema]
 version=1
-LibDir=C:/projects/HH/KiCad/tehoKiCADlib-master/lib
+LibDir=
 NetFmtName=
 RptD_X=0
 RptD_Y=100
@@ -41,3 +41,5 @@ LibName29=contrib
 LibName30=valves
 LibName31=msp430
 LibName32=msp430g2230idr
+[general]
+version=1
