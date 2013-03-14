@@ -1,5 +1,7 @@
-update=3/14/2013 1:16:22 AM
-last_client=kicad
+update=3/14/2013 2:47:23 PM
+last_client=eeschema
+[general]
+version=1
 [eeschema]
 version=1
 LibDir=
@@ -41,5 +43,4 @@ LibName29=contrib
 LibName30=valves
 LibName31=msp430
 LibName32=msp430g2230idr
-[general]
-version=1
+LibName33=diode_array
