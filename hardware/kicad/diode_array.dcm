@@ -1,0 +1,8 @@
+EESchema-DOCLIB  Version 2.0  Date: 3/14/2013 2:52:57 PM
+#
+$CMP DIODE_ARRAY
+D Double diode Shottky (Serie)
+K DEV DIODE
+$ENDCMP
+#
+#End Doc Library

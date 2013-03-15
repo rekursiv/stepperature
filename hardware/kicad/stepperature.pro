@@ -1,4 +1,4 @@
-update=3/14/2013 2:47:23 PM
+update=3/14/2013 5:02:38 PM
 last_client=eeschema
 [general]
 version=1
@@ -44,3 +44,4 @@ LibName30=valves
 LibName31=msp430
 LibName32=msp430g2230idr
 LibName33=diode_array
+LibName34=led_red_grn

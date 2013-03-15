@@ -1,0 +1,11 @@
+EESchema-DOCLIB  Version 2.0  Date: 3/14/2013 5:12:04 PM
+#
+$CMP LED
+K LED
+$ENDCMP
+#
+$CMP LEDRG
+K LED
+$ENDCMP
+#
+#End Doc Library
