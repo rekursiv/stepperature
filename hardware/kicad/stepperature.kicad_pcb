@@ -3,16 +3,16 @@
   (general
     (links 69)
     (no_connects 0)
-    (area 88.3793 96.39155 126.113 127.024001)
+    (area 49.1363 22.834601 90.036953 58.296177)
     (thickness 1.6)
-    (drawings 20)
+    (drawings 21)
     (tracks 337)
     (zones 0)
     (modules 31)
     (nets 26)
   )
 
-  (page User 132.08 101.6)
+  (page User 431.8 279.4)
   (title_block 
     (rev 1)
     (company "Protoplant Inc.")
@@ -37,7 +37,7 @@
   )
 
   (setup
-    (last_trace_width 0.508)
+    (last_trace_width 0.254)
     (user_trace_width 0.381)
     (user_trace_width 0.508)
     (user_trace_width 0.762)
@@ -988,13 +988,13 @@
     )
   )
 
-  (module LED_RG (layer F.Cu) (tedit 51440B80) (tstamp 5143C509)
+  (module LED_RG (layer F.Cu) (tedit 51444230) (tstamp 5143C509)
     (at 77.089 51.562 90)
     (descr LED_RG)
     (tags LED_RG)
     (path /5142677B)
     (attr smd)
-    (fp_text reference D4 (at -1.016 -1.524 90) (layer F.SilkS)
+    (fp_text reference D4 (at 2.413 0 180) (layer F.SilkS)
       (effects (font (size 0.635 0.635) (thickness 0.1524)))
     )
     (fp_text value LEDRG (at -2.8 -2.475 90) (layer F.SilkS) hide
@@ -1018,13 +1018,13 @@
     )
   )
 
-  (module diode-SOD323-W (layer F.Cu) (tedit 5143EE38) (tstamp 5143C52A)
+  (module diode-SOD323-W (layer F.Cu) (tedit 5144424B) (tstamp 5143C52A)
     (at 68.961 32.766 180)
     (descr "SOD323 WAVE SOLDERING PHILIPS SC01_MOUNTING_1996.PDF")
     (tags "SOD323 WAVE SOLDERING PHILIPS SC01_MOUNTING_1996.PDF")
     (path /513D9318)
     (attr smd)
-    (fp_text reference D3 (at 2.75 0 270) (layer B.SilkS)
+    (fp_text reference D3 (at -1.397 1.143 180) (layer B.SilkS)
       (effects (font (size 0.635 0.635) (thickness 0.1524)))
     )
     (fp_text value "ZENER 3.3V" (at 2.70764 1.6637 180) (layer B.SilkS) hide
@@ -1211,6 +1211,7 @@
     )
   )
 
+  (gr_line (start 76.073 53.467) (end 78.105 53.467) (angle 90) (layer F.SilkS) (width 0.1524))
   (dimension 29.21 (width 0.1524) (layer Dwgs.User)
     (gr_text "1.1500 in" (at 87.617299 42.545 270) (layer Dwgs.User)
       (effects (font (size 0.635 0.635) (thickness 0.1524)))
