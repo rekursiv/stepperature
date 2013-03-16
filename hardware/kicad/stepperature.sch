@@ -1,4 +1,4 @@
-EESchema Schematic File Version 2  date 3/15/2013 1:20:08 AM
+EESchema Schematic File Version 2  date 3/15/2013 5:54:36 PM
 LIBS:power
 LIBS:device
 LIBS:transistors
@@ -29,10 +29,6 @@ LIBS:opto
 LIBS:atmel
 LIBS:contrib
 LIBS:valves
-LIBS:msp430
-LIBS:msp430g2230idr
-LIBS:diode_array
-LIBS:led_red_grn
 LIBS:stepperature-cache
 EELAYER 27 0
 EELAYER END

@@ -1,4 +1,4 @@
-Cmp-Mod V01 Created by CvPcb (2013-03-10 BZR 3992)-stable date = 3/15/2013 1:24:18 AM
+Cmp-Mod V01 Created by CvPcb (2013-03-10 BZR 3992)-stable date = 3/15/2013 5:42:33 PM
 
 BeginCmp
 TimeStamp = /513DAE3F;
@@ -60,14 +60,14 @@ BeginCmp
 TimeStamp = /513D85AE;
 Reference = P1;
 ValeurCmp = STEPPER;
-IdModule  = SIL-4;
+IdModule  = header-molex-smt-4;
 EndCmp
 
 BeginCmp
 TimeStamp = /51422F06;
 Reference = P2;
 ValeurCmp = A/B/PWR;
-IdModule  = SIL-4;
+IdModule  = header-molex-smt-4;
 EndCmp
 
 BeginCmp
@@ -214,7 +214,7 @@ BeginCmp
 TimeStamp = /51422DBC;
 Reference = U2;
 ValeurCmp = 74ACT04;
-IdModule  = TSSOP14;
+IdModule  = SO14E;
 EndCmp
 
 EndListe

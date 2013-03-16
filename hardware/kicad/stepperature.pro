@@ -1,5 +1,10 @@
-update=3/15/2013 1:41:14 AM
+update=3/15/2013 5:54:12 PM
 last_client=pcbnew
+[cvpcb]
+version=1
+NetIExt=net
+[cvpcb/libraries]
+EquName1=devcms
 [pcbnew]
 version=1
 LastNetListRead=stepperature.net
@@ -31,6 +36,7 @@ LibName8=led
 LibName9=dip_sockets
 LibName10=pga_sockets
 LibName11=valves
-LibName12=diode
-LibName13=switch-tact
+LibName12=header-molex-smt-4
+LibName13=diode
 LibName14=led_red_grn
+LibName15=switch-tact
