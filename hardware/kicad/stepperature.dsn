@@ -21,9 +21,9 @@
       )
     )
     (boundary
-      (rect pcb 64084.3 -60650 168326 -129540)
+      (rect pcb 88907.3 -96391.6 125479 -127024)
     )
-    (via "Via[0-1]_889:635_um" "Via[0-1]_889:0_um")
+    (via "Via[0-1]_889:635_um" "Via[0-1]_889:0_um" "Via[0-1]_1778:1270_um")
     (rule
       (width 254)
       (clearance 254.1)
@@ -36,18 +36,14 @@
       (place SW1 113000 -100500 front 0 (PN SW_PUSH))
     )
     (component SOT23_6
-      (place D1 100330 -113030 front 0 (PN DIODES))
+      (place D1 100010 -113030 front 0 (PN DIODES))
       (place D2 104000 -113000 front 0 (PN DIODES))
     )
     (component SO8E
-      (place U1 109000 -112000 front 0 (PN MSP430G2230IDR))
+      (place U1 109000 -112000 front 0 (PN MSP430))
     )
     (component SO14E
       (place U2 110500 -120000 front 0 (PN 74ACT04))
-    )
-    (component SM2512
-      (place R2 95000 -121500 front 180 (PN 62))
-      (place R1 95000 -104500 front 180 (PN 62))
     )
     (component SM1206
       (place C1 101000 -109500 front 0 (PN 10uF))
@@ -67,21 +63,25 @@
       (place R10 99500 -100500 front 0 (PN 10K))
     )
     (component "SIL-2"
-      (place P6 102000 -117000 front 0 (PN TP1))
+      (place P6 102800 -116600 front 0 (PN TP1))
       (place P7 113500 -111500 front 90 (PN TP2))
-      (place P4 120000 -101500 front 0 (PN "A/B 3.3V"))
-      (place P3 120000 -105500 front 0 (PN ~A~/~B))
-      (place P5 108500 -106500 front 0 (PN PROG))
+      (place P4 119910 -101030 front 0 (PN "A/B 3.3V"))
+      (place P3 119910 -105780 front 0 (PN ~A~/~B))
+      (place P5 108210 -106630 front 0 (PN PROG))
     )
     (component LED_RG
       (place D4 119500 -121000 front 0 (PN LEDRG))
     )
-    (component "header-molex-smt-4"
-      (place P1 94000 -113000 front 270 (PN STEPPER))
-      (place P2 119000 -113000 front 270 (PN A/B/PWR))
-    )
     (component "diode-SOD323-W"
-      (place D3 108500 -103500 front 180 (PN "ZENER 3.3V"))
+      (place D3 108660 -103030 front 180 (PN "ZENER 3.3V"))
+    )
+    (component SM2512NP
+      (place R1 95000 -104500 front 180 (PN 62))
+      (place R2 95000 -121500 front 180 (PN 62))
+    )
+    (component "header-molex-smt-4"
+      (place P2 119000 -113000 front 270 (PN A/B/PWR))
+      (place P1 94000 -113000 front 270 (PN STEPPER))
     )
   )
   (library
@@ -159,17 +159,6 @@
       (pin Rect[T]Pad_508x1143_um 13 -2540 2540)
       (pin Rect[T]Pad_508x1143_um 14 -3810 2540)
     )
-    (image SM2512
-      (outline (path signal 149.86  -3999.56 2100.58  -3999.56 -2100.58))
-      (outline (path signal 149.86  -4300.22 2100.58  -4300.22 -2100.58))
-      (outline (path signal 149.86  4300.22 2100.58  4300.22 -2100.58))
-      (outline (path signal 149.86  1996.44 -2105.66  4282.44 -2105.66))
-      (outline (path signal 149.86  4282.44 2105.66  1996.44 2105.66))
-      (outline (path signal 149.86  -1998.98 2105.66  -4284.98 2105.66))
-      (outline (path signal 149.86  -4282.44 -2105.66  -1996.44 -2105.66))
-      (pin Rect[T]Pad_1998.98x2999.74_um 1 -2999.74 0)
-      (pin Rect[T]Pad_1998.98x2999.74_um 2 2999.74 0)
-    )
     (image SM1206
       (outline (path signal 127  -2540 1143  -2540 -1143))
       (outline (path signal 127  -2540 -1143  -889 -1143))
@@ -194,12 +183,6 @@
       (pin Rect[T]Pad_1200x600_um 1 900 475)
       (pin Rect[T]Pad_1200x600_um 2 -900 475)
     )
-    (image "header-molex-smt-4"
-      (pin Rect[T]Pad_1270x2960_um 4 3810 -1640)
-      (pin Rect[T]Pad_1270x2960_um 3 1270 1640)
-      (pin Rect[T]Pad_1270x2960_um 1 -3810 1640)
-      (pin Rect[T]Pad_1270x2960_um 2 -1270 -1640)
-    )
     (image "diode-SOD323-W"
       (outline (path signal 66.04  -698.5 -698.5  -497.84 -698.5))
       (outline (path signal 66.04  -497.84 -698.5  -497.84 698.5))
@@ -214,6 +197,26 @@
       (outline (path signal 152.4  99.06 -398.78  -497.84 0))
       (pin Rect[T]Pad_1498.6x1198.88_um 1 1447.8 0)
       (pin Rect[T]Pad_1498.6x1198.88_um 2 -1447.8 0)
+    )
+    (image SM2512NP
+      (outline (path signal 149.86  -4300.22 2100.58  -4300.22 -2100.58))
+      (outline (path signal 149.86  4300.22 2100.58  4300.22 -2100.58))
+      (outline (path signal 149.86  1996.44 -2105.66  4282.44 -2105.66))
+      (outline (path signal 149.86  4282.44 2105.66  1996.44 2105.66))
+      (outline (path signal 149.86  -1998.98 2105.66  -4284.98 2105.66))
+      (outline (path signal 149.86  -4282.44 -2105.66  -1996.44 -2105.66))
+      (pin Rect[T]Pad_1998.98x2999.74_um 1 -2999.74 0)
+      (pin Rect[T]Pad_1998.98x2999.74_um 2 2999.74 0)
+    )
+    (image "header-molex-smt-4"
+      (outline (path signal 152.4  -5080 635  5080 635))
+      (outline (path signal 152.4  5080 635  5080 -635))
+      (outline (path signal 152.4  5080 -635  -5080 -635))
+      (outline (path signal 152.4  -5080 -635  -5080 635))
+      (pin Rect[T]Pad_1270x2960_um 4 3810 -1640)
+      (pin Rect[T]Pad_1270x2960_um 3 1270 1640)
+      (pin Rect[T]Pad_1270x2960_um 1 -3810 1640)
+      (pin Rect[T]Pad_1270x2960_um 2 -1270 -1640)
     )
     (padstack Round[A]Pad_1397_um
       (shape (circle F.Cu 1397))
@@ -271,10 +274,15 @@
       (shape (circle B.Cu 889))
       (attach off)
     )
+    (padstack "Via[0-1]_1778:1270_um"
+      (shape (circle F.Cu 1778))
+      (shape (circle B.Cu 1778))
+      (attach off)
+    )
   )
   (network
     (net GND
-      (pins SW1-2 D1-4 D1-1 U1-8 U2-7 C1-2 R4-1 C2-2 R3-1 P1-3 P1-2 P2-4 D3-1)
+      (pins SW1-2 D1-4 D1-1 U1-8 U2-7 C1-2 R4-1 C2-2 R3-1 D3-1 P2-4 P1-3 P1-2)
     )
     (net "N-000001"
       (pins U1-7 P5-1)
@@ -286,10 +294,10 @@
       (pins C4-2 R11-1)
     )
     (net "N-0000014"
-      (pins D1-5 R2-1 P6-2)
+      (pins D1-5 P6-2 R2-1)
     )
     (net "N-0000015"
-      (pins D1-2 R1-1 P6-1)
+      (pins D1-2 P6-1 R1-1)
     )
     (net "N-0000016"
       (pins C3-1 R10-1)
@@ -298,10 +306,10 @@
       (pins U1-1 C2-1 R5-2 D3-2)
     )
     (net "N-0000018"
-      (pins R2-2 C4-1 P1-4)
+      (pins C4-1 R2-2 P1-4)
     )
     (net "N-0000019"
-      (pins R1-2 C3-2 P1-1)
+      (pins C3-2 R1-2 P1-1)
     )
     (net "N-000002"
       (pins R8-1 D4-3)
@@ -361,7 +369,38 @@
         (clearance 254.1)
       )
     )
+    (class Power
+      (circuit
+        (use_via Via[0-1]_1778:1270_um)
+      )
+      (rule
+        (width 1524)
+        (clearance 254.1)
+      )
+    )
   )
   (wiring
+    (wire (path F.Cu 1270  92360 -111730  93100 -111730  95640 -114270)(net GND)(type protect))
+    (wire (path F.Cu 1270  117360 -116810  116068 -121041  116078 -121031)(net GND)(type protect))
+    (wire (path B.Cu 1270  116078 -121031  113800 -123800  102800 -123800  96200 -117200)(net GND)(type protect))
+    (wire (path F.Cu 1270  96200 -117200  95640 -116640  95640 -114270)(net GND)(type protect))
+    (wire (path F.Cu 508  102651 -109500  101900 -109500  100962 -110438  100962 -111760)(net GND)(type protect))
+    (wire (path B.Cu 762  102108 -113030  102108 -109982  100965 -108839)(net VCC)(type protect))
+    (wire (path F.Cu 762  100965 -108839  100304 -109500  99349 -109500)(net VCC)(type protect))
+    (wire (path F.Cu 508  100962 -114300  100962 -113032  100965 -113030)(net VCC)(type protect))
+    (wire (path F.Cu 1270  116108 -114270  116078 -114300)(net VCC)(type protect))
+    (wire (path F.Cu 1270  116108 -114270  120640 -114270)(net VCC)(type protect))
+    (wire (path B.Cu 1270  104521 -113030  102108 -113030  100965 -113030)(net VCC)(type protect))
+    (wire (path B.Cu 1270  107696 -116205  104521 -113030)(net VCC)(type protect))
+    (wire (path B.Cu 1270  114173 -116205  107696 -116205)(net VCC)(type protect))
+    (wire (path B.Cu 1270  116078 -114300  114173 -116205)(net VCC)(type protect))
+    (wire (path F.Cu 508  99349 -109500  99349 -110251)(net VCC)(type protect))
+    (wire (path F.Cu 508  99057.5 -110542  99057.5 -111760)(net VCC)(type protect))
+    (wire (path F.Cu 508  99349 -110251  99057.5 -110542)(net VCC)(type protect))
+    (via "Via[0-1]_889:635_um"  116078 -121031 (net GND)(type protect))
+    (via "Via[0-1]_889:635_um"  96200 -117200 (net GND)(type protect))
+    (via "Via[0-1]_889:635_um"  100965 -108839 (net VCC)(type protect))
+    (via "Via[0-1]_889:635_um"  100965 -113030 (net VCC)(type protect))
+    (via "Via[0-1]_889:635_um"  116078 -114300 (net VCC)(type protect))
   )
 )
