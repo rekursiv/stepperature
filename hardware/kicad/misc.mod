@@ -1,9 +1,10 @@
-PCBNEW-LibModule-V1  3/16/2013 1:05:30 AM
+PCBNEW-LibModule-V1  3/16/2013 1:51:55 PM
 # encoding utf-8
 Units mm
 $INDEX
 SM2512NP
 header-molex-smt-4
+hole
 $EndINDEX
 $MODULE SM2512NP
 Po 0 0 0 15 5143E8CF 00000000 ~~
@@ -87,4 +88,20 @@ Ne 1 "GND"
 Po -1.27 1.64
 $EndPAD
 $EndMODULE header-molex-smt-4
+$MODULE hole
+Po 0 0 0 15 5144DB54 00000000 ~~
+Li hole
+Sc 0
+AR 
+Op 0 0 0
+T0 0 0 0.635 0.635 0 0.1524 N I 21 N ""
+T1 0 0 0.635 0.635 0 0.1524 N I 21 N ""
+$PAD
+Sh "" C 2.032 2.032 0 0 0
+Dr 1.651 0 0
+At STD N 00E0FFFF
+Ne 0 ""
+Po 0 0
+$EndPAD
+$EndMODULE hole
 $EndLIBRARY
