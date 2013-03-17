@@ -1,4 +1,4 @@
-EESchema Schematic File Version 2  date 3/15/2013 5:54:36 PM
+EESchema Schematic File Version 2  date 3/16/2013 7:25:06 PM
 LIBS:power
 LIBS:device
 LIBS:transistors
@@ -36,7 +36,7 @@ $Descr USLetter 11000 8500
 encoding utf-8
 Sheet 1 1
 Title "Stepperature"
-Date "15 mar 2013"
+Date "17 mar 2013"
 Rev "3"
 Comp "Protoplant Inc."
 Comment1 ""
@@ -597,24 +597,24 @@ $EndComp
 $Comp
 L LEDRG D4
 U 1 1 5142677B
-P 6600 6100
-F 0 "D4" H 6600 6200 50  0000 C CNN
-F 1 "LEDRG" H 6600 6300 50  0001 C CNN
-F 2 "~" H 6600 6100 60  0000 C CNN
-F 3 "~" H 6600 6100 60  0000 C CNN
-	1    6600 6100
-	1    0    0    -1  
-$EndComp
-$Comp
-L LEDRG D4
-U 2 1 5142678A
 P 6600 4400
 F 0 "D4" H 6600 4500 50  0000 C CNN
 F 1 "LEDRG" H 6600 4600 50  0001 C CNN
 F 2 "~" H 6600 4400 60  0000 C CNN
 F 3 "~" H 6600 4400 60  0000 C CNN
-	2    6600 4400
-	1    0    0    -1  
+	1    6600 4400
+	-1   0    0    1   
+$EndComp
+$Comp
+L LEDRG D4
+U 2 1 5142678A
+P 6600 6100
+F 0 "D4" H 6600 6200 50  0000 C CNN
+F 1 "LEDRG" H 6600 6300 50  0001 C CNN
+F 2 "~" H 6600 6100 60  0000 C CNN
+F 3 "~" H 6600 6100 60  0000 C CNN
+	2    6600 6100
+	-1   0    0    1   
 $EndComp
 $Comp
 L CONN_2 P7
