@@ -1,4 +1,4 @@
-Cmp-Mod V01 Created by PcbNew date = 3/16/2013 1:54:41 AM
+Cmp-Mod V01 Created by PcbNew date = 3/16/2013 6:10:18 PM
 
 BeginCmp
 TimeStamp = /513DAE3F;
@@ -32,14 +32,14 @@ BeginCmp
 TimeStamp = /514254AC;
 Reference = D1;
 ValeurCmp = DIODES;
-IdModule  = SOT23_6;
+IdModule  = SOT26;
 EndCmp
 
 BeginCmp
 TimeStamp = /5142542A;
 Reference = D2;
 ValeurCmp = DIODES;
-IdModule  = SOT23_6;
+IdModule  = SOT26;
 EndCmp
 
 BeginCmp
