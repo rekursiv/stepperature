@@ -1,4 +1,4 @@
-EESchema Schematic File Version 2  date 4/4/2013 12:56:01 PM
+EESchema Schematic File Version 2  date 4/4/2013 6:35:51 PM
 LIBS:power
 LIBS:device
 LIBS:transistors
@@ -36,8 +36,8 @@ $Descr USLetter 11000 8500
 encoding utf-8
 Sheet 1 1
 Title "Stepperature"
-Date "4 apr 2013"
-Rev "3"
+Date "5 apr 2013"
+Rev "2"
 Comp "Protoplant Inc."
 Comment1 ""
 Comment2 ""
@@ -309,11 +309,11 @@ F 3 "" H 7500 4200 60  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L R R8
+L R R9
 U 1 1 51422E55
 P 7100 4400
-F 0 "R8" V 7180 4400 40  0000 C CNN
-F 1 "270" V 7107 4401 40  0000 C CNN
+F 0 "R9" V 7180 4400 40  0000 C CNN
+F 1 "1K" V 7107 4401 40  0000 C CNN
 F 2 "~" V 7030 4400 30  0000 C CNN
 F 3 "~" H 7100 4400 30  0000 C CNN
 	1    7100 4400
@@ -386,10 +386,10 @@ F 3 "" H 7400 6000 60  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L R R9
+L R R8
 U 1 1 514233FE
 P 7100 6100
-F 0 "R9" V 7180 6100 40  0000 C CNN
+F 0 "R8" V 7180 6100 40  0000 C CNN
 F 1 "270" V 7107 6101 40  0000 C CNN
 F 2 "~" V 7030 6100 30  0000 C CNN
 F 3 "~" H 7100 6100 30  0000 C CNN
@@ -616,8 +616,6 @@ F 3 "~" H 6600 6100 60  0000 C CNN
 	2    6600 6100
 	-1   0    0    1   
 $EndComp
-Text Notes 6950 4550 0    60   ~ 0
-FIXME
 $Comp
 L R R12
 U 1 1 515DD256
