@@ -1,0 +1,36 @@
+eeschema (2013-03-31 BZR 4008)-stable  >> Creation date: 4/4/2013 10:00:54 PM
+#Cmp ( order = Reference )
+| C1         10uF        
+| C2         10uF        
+| C3         0.1uF       
+| C4         0.1uF       
+| C5         2.2nF       
+| D1         DIODES      
+| D2         DIODES      
+| D3         ZENER 3.3V  
+| D4         LEDRG       
+| P1         STEPPER     
+| P2         A/B/PWR     
+| P3         ~A~/~B      
+| P4         A/B 3.3V    
+| P5         PROG        
+| R1         62          
+| R2         62          
+| R3         100         
+| R4         100         
+| R5         100         
+| R6         270         
+| R7         270         
+| R8         270         
+| R9         1K          
+| R10        10K         
+| R11        10K         
+| R12        47K         
+| R13        1M          
+| R14        1M          
+| SW1        SW_PUSH     
+| U1         MSP430G2230IDR
+| U2         74ACT04     
+#End Cmp
+
+#End List
