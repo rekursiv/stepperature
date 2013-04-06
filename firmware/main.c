@@ -1,47 +1,9 @@
 #include <msp430.h>
-#include "printf.h"
+#include "serial.h"
+#include "state.h"
+#include "config.h"
+//#include "debug.h"
 
-
-//#define REF_OFFSET 0    ////////////
-
-#define SAMPLE_RATE 20000	// in Hz
-#define DEADBAND_DEFAULT 20	// amount of "hysteresis" used when determining top vs. bottom half of waveform
-#define DEADBAND_MIN 15
-#define DEADBAND_MAX 45
-#define UP_COUNT_MIN 2		// how high to count before triggering a step when waveform is moving quickly
-#define UP_COUNT_MAX 50		// how high to count before triggering a step when waveform is moving slowly
-#define ADJUST_DELAY 2000	// how far off centerline the averaging sum has to be before adjustment is made (smaller adjusts faster)
-#define REF_CENTER 590  	// approx. center point of waveform to use as starting point (will adjust itself)
-
-#define CLOCK_RATE 16000000	// 16 MHz
-
-// debugging
-#define PIN_DEBUG_OUT
-#define USE_SERIAL
-#define SER_STEP_OUT
-//#define SER_DEBUG_OUT
-/////
-
-#define TEST1_OUT BIT7
-#define A_OUT BIT0		//  red LED
-#define B_OUT BIT6		//  green LED
-#define BTN_IN BIT3
-
-#define A_IN INCH_4
-#define B_IN INCH_5
-
-// state flags
-#define S_SM_MASK BIT0+BIT1     // mask for step mode state
-#define S_SM_QUAD 0				// A=quadrature A, B=quadrature B
-#define S_SM_SD 1				// A=step, B=direction
-#define S_SM_SASB 2				// A=step dir A, B=step dir B
-#define S_SM_LAST 2				// last valid mode in list
-//#define S_SERIAL_STEP_OUT BIT2  // enable output of steps over serial port
-#define S_BTN_DN BIT3
-#define S_ADC_IN_A BIT4
-#define S_STEPPING BIT5
-
-unsigned char state = S_SM_QUAD;
 
 
 unsigned int loopCount = 0;
@@ -58,32 +20,10 @@ unsigned char adcDeadband_A = DEADBAND_DEFAULT;
 unsigned char adcDeadband_B = DEADBAND_DEFAULT;
 
 
-void inline initDebug() {
-    initPut();
-    cls();
-    puts("Ready.");
-    sendPut(0);
-}
-
-void inline initClk() {
-	BCSCTL1 = CALBC1_16MHZ;         // set clock speed
-	DCOCTL = CALDCO_16MHZ;
-}
-
-void inline initBtn() {
-    P1REN |= BTN_IN; // enable internal pullup
-    P1OUT |= BTN_IN; // set pullup
-}
-
 void inline initOuts() {
-    P1DIR |= (A_OUT + B_OUT); // set leds as outputs
-    P1OUT &= ~A_OUT; // turn off red
-    P1OUT &= ~B_OUT;  // turn off green
-#ifdef PIN_DEBUG_OUT
-    // init output used for testing
-	P1DIR |= TEST1_OUT;
-	P1OUT &= ~TEST1_OUT;
-#endif
+    P1DIR |= (A_OUT + B_OUT);
+    P1OUT &= ~A_OUT;
+    P1OUT &= ~B_OUT;
 }
 
 void inline initAdc() {
@@ -96,9 +36,17 @@ void inline initAdc() {
 
 void inline initTimer() {
 	TA0CCR0 = (CLOCK_RATE/SAMPLE_RATE)-1;		// Count limit (16 bit)
-	TA0CCTL0 = CCIE;							// capture compare interrupt enable
+	TA0CCTL0 = CCIE | OUTMOD1;					// capture compare interrupt enable, out mode 1
 	TA0CTL = TASSEL_2+MC_1; 					// use SMCLK, count UP
 }
+
+
+// sorry, it only works once...
+void inline go16xFaster() {
+	BCSCTL1 = CALBC1_16MHZ;         // set clock speed
+	DCOCTL = CALDCO_16MHZ;
+}
+
 
 void inline adcTriggerSample(unsigned const int chan) {
 	ADC10CTL0 &= ~ENC;				// Disable ADC
@@ -107,11 +55,32 @@ void inline adcTriggerSample(unsigned const int chan) {
 	ADC10CTL0 |= ENC + ADC10SC; 	// Enable and start conversion
 }
 
-void inline incMode() {
-	if ((state&S_SM_MASK)==S_SM_LAST) state&=~S_SM_MASK;
-	else ++state;
+
+unsigned char inline getStepMode() {
+	return (state&S_SM_MASK);
+}
+
+void inline setStepMode(const unsigned char mode) {
+	state &= ~S_SM_MASK;
+	state |= (mode&S_SM_MASK);
+	if ((state&S_SM_MASK)==S_SM_SERIAL) {
+		_disable_interrupts();
+		P1OUT&=~A_OUT;
+		serialEnable();
+		_enable_interrupts();
+	} else {
+		_disable_interrupts();
+		serialDisable();
+		_enable_interrupts();
+	}
 	//  TODO: store state in flash, load on boot
 }
+
+void inline incStepMode() {
+	if (getStepMode()==S_SM_LAST) setStepMode(0);
+	else setStepMode(getStepMode()+1);
+}
+
 
 void inline incQuad() {
 	if ((P1OUT&A_OUT)==0&&(P1OUT&B_OUT)==0) P1OUT|=A_OUT;
@@ -131,34 +100,22 @@ void inline stepA_B() {  // step A leading B
 	if ((state&S_SM_MASK)==S_SM_QUAD) incQuad();
 	else if ((state&S_SM_MASK)==S_SM_SD) P1OUT|=B_OUT;
 	else if ((state&S_SM_MASK)==S_SM_SASB) P1OUT|=A_OUT;
-#ifdef SER_STEP_OUT
-	initPut();
-	putc('+');
-	sendPut(0);
-#endif
+	else if ((state&S_SM_MASK)==S_SM_SERIAL) serialPutc('+');
 }
 
 void inline stepB_A() {  // step B leading A
 	if ((state&S_SM_MASK)==S_SM_QUAD) decQuad();
 	else if ((state&S_SM_MASK)==S_SM_SD) P1OUT&=~B_OUT;
 	else if ((state&S_SM_MASK)==S_SM_SASB) P1OUT|=B_OUT;
-#ifdef SER_STEP_OUT
-	initPut();
-	putc('-');
-	sendPut(0);
-#endif
+	else if ((state&S_SM_MASK)==S_SM_SERIAL) serialPutc('-');
 }
 
 void inline stepReset() {
-	if ((state&S_SM_MASK)!=S_SM_QUAD) {
+	if (((state&S_SM_MASK)==S_SM_SD)||((state&S_SM_MASK)==S_SM_SASB)) {
   		P1OUT&=~A_OUT;
   		P1OUT&=~B_OUT;
 	}
 }
-
-//int min = 0;
-//int max = 0;
-//nt test = 0;
 
 void inline calcRunningAverage() {
 	adcOffsetAdj_A+=adcRef_A-adcData_A;
@@ -191,49 +148,42 @@ void inline calcUpCountRef(unsigned int upCount) {
 
 
 int main(void) {
-    WDTCTL = WDTPW + WDTHOLD;  // throw the watchdog a bone
+	WDTCTL = WDTPW+WDTCNTCL;   // throw the dog a bone
+
+//	setStepMode(S_SM_SERIAL);   //  //  //  TEST
 
     // set stuff up
-    initClk();
-    initBtn();
-    initOuts();
-#ifdef USE_SERIAL
-    initSerial();
-#endif
+    initOuts();    //////
     initAdc();
     initTimer();
     _enable_interrupts();
-#ifdef SER_DEBUG_OUT
-    initDebug();
-#endif
 
     while(1) {         //  main loop
 
+    	WDTCTL = WDTPW+WDTCNTCL; // don't forget to pet the dog
+
     	_bis_SR_register(CPUOFF);  // wait for timer
-#ifdef PIN_DEBUG_OUT
-    	P1OUT |= TEST1_OUT;
+
+
+#ifdef DEBUG
+    	debugBegin();
 #endif
-#ifdef SER_DEBUG_OUT
-    	initPut();
-#endif
+
+
+    	// wait until we have enough voltage to run at 16mhz
+    	if (!(state&S_16MHZ)) {
+         	state |= S_ADC_IN_A;
+        	adcTriggerSample(VCC_IN);  // sample power supply voltage
+         	_bis_SR_register(CPUOFF);   // wait for sample
+         	if (adcData_A > 615) { // check if we have at least 3v at VCC
+         		state |= S_16MHZ;
+       	  	    go16xFaster();  // OK let's go fast now
+         	}
+         	continue;  //  BYPASS the rest of the loop until we're running fast enough
+    	}
 
     	// handle step output for step/dir mode
     	if ((state&S_STEPPING)&&(state&S_SM_MASK)==S_SM_SD&&(P1OUT&A_OUT)==0) P1OUT|=A_OUT;
-
-/*
-   	  	// handle button press
-   	  	if ((P1IN&BTN_IN)==0&&(state&S_BTN_DN)==0) {
-   	  		calibrate();
-//  	  		printf(" %u:%u ", adcData_A, adcData_B);
-//   	  		incMode();
-   	  		state |= S_BTN_DN;
-//   	  		continue;
-   	  	} else if ((P1IN&BTN_IN)&&(state&S_BTN_DN)) {
-   	  		state &= ~S_BTN_DN;
-//   	  		continue;
-   	  	}
-*/
-
 
     	//  acquire data from ADC
      	state |= S_ADC_IN_A;
@@ -243,7 +193,31 @@ int main(void) {
    		adcTriggerSample(B_IN);
    	  	_bis_SR_register(CPUOFF);   // wait for sample B
 
+
+   	  	// handle button press
+   	  	if (adcData_A<100) {
+   	  		if (!(state&S_BTN_DN)) {
+   	  			state |= S_BTN_DN;
+   	  		}
+   	  		continue;
+   	  	} else {
+   	  		if ((state&S_BTN_DN)) {
+  	  			state &= ~S_BTN_DN;
+  	  			incStepMode();
+   	  		}
+   	  	}
+
    	  	calcRunningAverage();
+
+//   	  	printf("%u:%u", adcRef_A, adcRef_B);
+
+
+//   	  	if (state&S_TEST) printf(" %u:%u ", adcData_A, adcData_B);
+   	  		//printf("  %u", loopCount);
+//   	  	if (loopCount>10000) state&=~S_TEST;
+
+//
+
 /*
   		if (loopCount%0x2000==0) {
 //  			printf("D:%u:%u ", adcDeadband_A, adcDeadband_B);
@@ -251,14 +225,7 @@ int main(void) {
   			if (adcDeadband_B>DEADBAND_MIN) --adcDeadband_B;
    	  	}
 */
-#ifdef SER_DEBUG_OUT
-   	  	//  TEST  // // //
-   	  	if ((P1IN&BTN_IN)==0) {
-   	  		printf("u:%u  ", upCountRef);
-   	  		printf("A:%u:%u|%i ", adcData_A, adcRef_A, adcOffsetAdj_A);
-   	  		printf("B:%u:%u|%i ", adcData_B, adcRef_B, adcOffsetAdj_B);
-   	  	}  // // // // // //
-#endif
+
 
 
    	  	// process sample data
@@ -284,7 +251,7 @@ int main(void) {
    	  		++adcUpCount_B;
    	  	} else if (adcData_B<adcRef_B-adcDeadband_B) {
    	  		if (adcUpCount_B==1) {
- //  	  			printf("b%u ", adcDeadband_B);
+//  	  			printf("b%u ", adcDeadband_B);
    	  			if (adcDeadband_B<DEADBAND_MAX) ++adcDeadband_B;
    	  		} else  if (adcUpCount_A>100&&adcUpCount_B>100&&(int)(adcData_A-(adcRef_A+adcDeadband_A))>20) {
 //  	  			printf("Ba:%i:%u ", adcData_A-(adcRef_A+adcDeadband_A), adcDeadband_B);
@@ -319,12 +286,11 @@ int main(void) {
 
     	++loopCount;
 
-#ifdef SER_DEBUG_OUT
-  	  	sendPut('\n');
+
+#ifdef DEBUG
+    	debugEnd();
 #endif
-#ifdef PIN_DEBUG_OUT
-   		P1OUT &= ~TEST1_OUT;
-#endif
+
 
     }  // while
 }
