@@ -19,6 +19,9 @@ unsigned char upCountRef = UP_COUNT_MAX;
 unsigned char adcDeadband_A = DEADBAND_DEFAULT;
 unsigned char adcDeadband_B = DEADBAND_DEFAULT;
 
+#ifdef DEBUG
+unsigned char stepDebug = 0;
+#endif
 
 void inline initOuts() {
     P1DIR |= (A_OUT + B_OUT);
@@ -100,14 +103,26 @@ void inline stepA_B() {  // step A leading B
 	if ((state&S_SM_MASK)==S_SM_QUAD) incQuad();
 	else if ((state&S_SM_MASK)==S_SM_SD) P1OUT|=B_OUT;
 	else if ((state&S_SM_MASK)==S_SM_SASB) P1OUT|=A_OUT;
-	else if ((state&S_SM_MASK)==S_SM_SERIAL) serialPutc('+');
+	else if ((state&S_SM_MASK)==S_SM_SERIAL) {
+#ifdef DEBUG
+		++stepDebug;
+#else
+		serialSendSingleByte('+');
+#endif
+	}
 }
 
 void inline stepB_A() {  // step B leading A
 	if ((state&S_SM_MASK)==S_SM_QUAD) decQuad();
 	else if ((state&S_SM_MASK)==S_SM_SD) P1OUT&=~B_OUT;
 	else if ((state&S_SM_MASK)==S_SM_SASB) P1OUT|=B_OUT;
-	else if ((state&S_SM_MASK)==S_SM_SERIAL) serialPutc('-');
+	else if ((state&S_SM_MASK)==S_SM_SERIAL) {
+#ifdef DEBUG
+		--stepDebug;
+#else
+		serialSendSingleByte('-');
+#endif
+	}
 }
 
 void inline stepReset() {
@@ -150,25 +165,21 @@ void inline calcUpCountRef(unsigned int upCount) {
 int main(void) {
 	WDTCTL = WDTPW+WDTCNTCL;   // throw the dog a bone
 
-//	setStepMode(S_SM_SERIAL);   //  //  //  TEST
-
     // set stuff up
     initOuts();    //////
     initAdc();
     initTimer();
     _enable_interrupts();
 
+#ifdef DEBUG
+	setStepMode(S_SM_SERIAL);
+#endif
+
     while(1) {         //  main loop
 
     	WDTCTL = WDTPW+WDTCNTCL; // don't forget to pet the dog
 
     	_bis_SR_register(CPUOFF);  // wait for timer
-
-
-#ifdef DEBUG
-    	debugBegin();
-#endif
-
 
     	// wait until we have enough voltage to run at 16mhz
     	if (!(state&S_16MHZ)) {
@@ -181,6 +192,10 @@ int main(void) {
          	}
          	continue;  //  BYPASS the rest of the loop until we're running fast enough
     	}
+
+#ifdef DEBUG
+    	debugBegin();
+#endif
 
     	// handle step output for step/dir mode
     	if ((state&S_STEPPING)&&(state&S_SM_MASK)==S_SM_SD&&(P1OUT&A_OUT)==0) P1OUT|=A_OUT;
@@ -287,7 +302,12 @@ int main(void) {
     	++loopCount;
 
 
+
 #ifdef DEBUG
+
+    	debugChar(stepDebug);
+    	debugChar(upCountRef);
+
     	debugEnd();
 #endif
 

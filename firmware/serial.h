@@ -3,13 +3,42 @@
 #ifndef SERIAL_H_
 #define SERIAL_H_
 
+
+#define SERIAL_BUF_LEN 1
+
+extern unsigned char serialBuf[];
+extern volatile unsigned char serialBufPos;
+
+
 void serialEnable();
 void serialDisable();
 
 
-// sends a byte out of the serial port immediately if the port is not being used
-// if the port is being used, does nothing
-void serialPutc(const unsigned char);
+void inline serialBegin() {
+	if (serialBufPos==255) serialBufPos = 128;
+}
+
+void inline serialAddByte(const unsigned char c) {
+	if (serialBufPos>=128 && (serialBufPos-128)<SERIAL_BUF_LEN ) {
+		serialBuf[serialBufPos-128] = c;
+		serialBufPos++;
+	}
+}
+
+void inline serialEnd() {
+	if (serialBufPos>128 && serialBufPos!=255) {
+		serialBufPos=0;
+		USICTL1 |= USIIFG;
+	}
+}
+
+void inline serialSendSingleByte(const unsigned char c) {
+	if (serialBufPos==255) {
+		serialBegin();
+		serialAddByte(c);
+		serialEnd();
+	}
+}
 
 
 
