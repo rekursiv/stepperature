@@ -3,14 +3,10 @@
 #ifndef CONFIG_H_
 #define CONFIG_H_
 
-//#define REF_OFFSET 0    ////////////
-
-#define SAMPLE_RATE 19200	// in Hz
-#define DEADBAND_DEFAULT 20	// amount of "hysteresis" used when determining top vs. bottom half of waveform
-#define DEADBAND_MIN 15
-#define DEADBAND_MAX 45
+#define SAMPLE_RATE 19200	// in Hz (double the baud rate of the serial port)
+#define DEADBAND 20			// amount of "hysteresis" used when determining top vs. bottom half of waveform
 #define UP_COUNT_MIN 2		// how high to count before triggering a step when waveform is moving quickly
-#define UP_COUNT_MAX 50		// how high to count before triggering a step when waveform is moving slowly
+#define UP_COUNT_MAX 20		// how high to count before triggering a step when waveform is moving slowly
 #define ADJUST_DELAY 2000	// how far off centerline the averaging sum has to be before adjustment is made (smaller adjusts faster)
 #define REF_CENTER 540  	// approx. center point of waveform to use as starting point (will adjust itself)
 

@@ -41,7 +41,6 @@ __interrupt void usi_isr (void) {
 	} else {
 		USICTL1 &= ~USIIFG;
 		serialBufPos = 255;
-//		serialBufReadable = 1;
 	}
 }
 

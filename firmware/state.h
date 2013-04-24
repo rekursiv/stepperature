@@ -4,7 +4,7 @@
 #define STATE_H_
 
 // state flags
-#define S_SM_MASK (BIT0|BIT1)     // mask for step mode state
+#define S_SM_MASK (BIT0|BIT1)   // mask for step mode state
 #define S_SM_QUAD 0				// A=quadrature A, B=quadrature B
 #define S_SM_SD 1				// A=step, B=direction
 #define S_SM_SASB 2				// A=step dir A, B=step dir B

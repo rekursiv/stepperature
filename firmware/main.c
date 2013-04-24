@@ -5,23 +5,24 @@
 //#include "debug.h"
 
 
-
-unsigned int loopCount = 0;
 volatile unsigned int adcData_A = 0;
 volatile unsigned int adcData_B = 0;
 unsigned int adcRef_A = REF_CENTER;
 unsigned int adcRef_B = REF_CENTER;
+
 unsigned int adcUpCount_A = 0;
 unsigned int adcUpCount_B = 0;
+unsigned char upCountRef = UP_COUNT_MAX;
+
 int adcOffsetAdj_A = 0;
 int adcOffsetAdj_B = 0;
-unsigned char upCountRef = UP_COUNT_MAX;
-unsigned char adcDeadband_A = DEADBAND_DEFAULT;
-unsigned char adcDeadband_B = DEADBAND_DEFAULT;
+
+unsigned char ticksSinceLastStep = 0;
 
 #ifdef DEBUG
 unsigned char stepDebug = 0;
 #endif
+
 
 void inline initOuts() {
     P1DIR |= (A_OUT + B_OUT);
@@ -43,13 +44,10 @@ void inline initTimer() {
 	TA0CTL = TASSEL_2+MC_1; 					// use SMCLK, count UP
 }
 
-
-// sorry, it only works once...
 void inline go16xFaster() {
 	BCSCTL1 = CALBC1_16MHZ;         // set clock speed
 	DCOCTL = CALDCO_16MHZ;
 }
-
 
 void inline adcTriggerSample(unsigned const int chan) {
 	ADC10CTL0 &= ~ENC;				// Disable ADC
@@ -57,7 +55,6 @@ void inline adcTriggerSample(unsigned const int chan) {
 	ADC10CTL1 |= chan;    			// set input channel bits
 	ADC10CTL0 |= ENC + ADC10SC; 	// Enable and start conversion
 }
-
 
 unsigned char inline getStepMode() {
 	return (state&S_SM_MASK);
@@ -69,6 +66,7 @@ void inline setStepMode(const unsigned char mode) {
 	if ((state&S_SM_MASK)==S_SM_SERIAL) {
 		_disable_interrupts();
 		P1OUT&=~A_OUT;
+		P1OUT&=~B_OUT;
 		serialEnable();
 		_enable_interrupts();
 	} else {
@@ -83,7 +81,6 @@ void inline incStepMode() {
 	if (getStepMode()==S_SM_LAST) setStepMode(0);
 	else setStepMode(getStepMode()+1);
 }
-
 
 void inline incQuad() {
 	if ((P1OUT&A_OUT)==0&&(P1OUT&B_OUT)==0) P1OUT|=A_OUT;
@@ -132,7 +129,7 @@ void inline stepReset() {
 	}
 }
 
-void inline calcRunningAverage() {
+void inline calcAdcRef_A() {
 	adcOffsetAdj_A+=adcRef_A-adcData_A;
 	if (adcOffsetAdj_A<-ADJUST_DELAY) {
 		++adcRef_A;
@@ -141,7 +138,9 @@ void inline calcRunningAverage() {
 		--adcRef_A;
 		adcOffsetAdj_A=0;
 	}
+}
 
+void inline calcAdcRef_B() {
 	adcOffsetAdj_B+=adcRef_B-adcData_B;
 	if (adcOffsetAdj_B<-ADJUST_DELAY) {
 		++adcRef_B;
@@ -152,13 +151,13 @@ void inline calcRunningAverage() {
 	}
 }
 
-
-void inline calcUpCountRef(unsigned int upCount) {
-	upCountRef=upCount>>3;  //  /8
+void inline calcUpCountRef() {
+	upCountRef=ticksSinceLastStep>>3;  //  /8
 	if (upCountRef<UP_COUNT_MIN) upCountRef=UP_COUNT_MIN;
 	else if (upCountRef>UP_COUNT_MAX) upCountRef=UP_COUNT_MAX;
-//	printf("u:%u  ", upCountRef);
 }
+
+
 
 
 
@@ -166,7 +165,7 @@ int main(void) {
 	WDTCTL = WDTPW+WDTCNTCL;   // throw the dog a bone
 
     // set stuff up
-    initOuts();    //////
+    initOuts();
     initAdc();
     initTimer();
     _enable_interrupts();
@@ -194,11 +193,8 @@ int main(void) {
     	}
 
 #ifdef DEBUG
-    	debugBegin();
+    	serialBegin();
 #endif
-
-    	// handle step output for step/dir mode
-    	if ((state&S_STEPPING)&&(state&S_SM_MASK)==S_SM_SD&&(P1OUT&A_OUT)==0) P1OUT|=A_OUT;
 
     	//  acquire data from ADC
      	state |= S_ADC_IN_A;
@@ -208,6 +204,8 @@ int main(void) {
    		adcTriggerSample(B_IN);
    	  	_bis_SR_register(CPUOFF);   // wait for sample B
 
+   	 	calcAdcRef_A();
+   	 	calcAdcRef_B();
 
    	  	// handle button press
    	  	if (adcData_A<100) {
@@ -222,93 +220,44 @@ int main(void) {
    	  		}
    	  	}
 
-   	  	calcRunningAverage();
+   	  	// count "high" samples
+   	  	if (adcData_A>adcRef_A+DEADBAND) ++adcUpCount_A;
+   	  	else if (adcData_A<adcRef_A) adcUpCount_A=0;
+   	  	if (adcData_B>adcRef_B+DEADBAND) ++adcUpCount_B;
+   	  	else if (adcData_B<adcRef_B) adcUpCount_B=0;
 
-//   	  	printf("%u:%u", adcRef_A, adcRef_B);
+   	   	// handle step output for step/dir mode
+ 	    if ((state&S_STEPPING)&&(state&S_SM_MASK)==S_SM_SD&&(P1OUT&A_OUT)==0) P1OUT|=A_OUT;
 
-
-//   	  	if (state&S_TEST) printf(" %u:%u ", adcData_A, adcData_B);
-   	  		//printf("  %u", loopCount);
-//   	  	if (loopCount>10000) state&=~S_TEST;
-
-//
-
-/*
-  		if (loopCount%0x2000==0) {
-//  			printf("D:%u:%u ", adcDeadband_A, adcDeadband_B);
-  			if (adcDeadband_A>DEADBAND_MIN) --adcDeadband_A;
-  			if (adcDeadband_B>DEADBAND_MIN) --adcDeadband_B;
-   	  	}
-*/
-
-
-
-   	  	// process sample data
-
-   	  	if (adcData_A>adcRef_A+adcDeadband_A) {
-  			++adcUpCount_A;
-   	  	} else if (adcData_A<adcRef_A-adcDeadband_A) {
-   	  		if (adcUpCount_A==1) {
-//   	  			printf("a%u ", adcDeadband_A);
-   	  			if (adcDeadband_A<DEADBAND_MAX) ++adcDeadband_A;
-   	  		} else if (adcUpCount_A>100&&adcUpCount_B>100&&(int)(adcData_B-(adcRef_B+adcDeadband_B))>20) {
-//  	  			printf("Ab:%i:%u ", adcData_B-(adcRef_B+adcDeadband_B), adcDeadband_A);
-  	  			if ((int)(adcData_B-(adcRef_B+adcDeadband_B))>80) {
-  	  				if (adcDeadband_A<DEADBAND_MAX) ++adcDeadband_A;
-  	  			} else {
-  	  				if (adcDeadband_A>DEADBAND_MIN) --adcDeadband_A;
-  	  			}
-  	  		}
-   	  		adcUpCount_A=0;
-   	  	}
-
-   	  	if (adcData_B>adcRef_B+adcDeadband_B) {
-   	  		++adcUpCount_B;
-   	  	} else if (adcData_B<adcRef_B-adcDeadband_B) {
-   	  		if (adcUpCount_B==1) {
-//  	  			printf("b%u ", adcDeadband_B);
-   	  			if (adcDeadband_B<DEADBAND_MAX) ++adcDeadband_B;
-   	  		} else  if (adcUpCount_A>100&&adcUpCount_B>100&&(int)(adcData_A-(adcRef_A+adcDeadband_A))>20) {
-//  	  			printf("Ba:%i:%u ", adcData_A-(adcRef_A+adcDeadband_A), adcDeadband_B);
-  	  			if ((int)(adcData_A-(adcRef_A+adcDeadband_A))>80) {
-  	  				if (adcDeadband_B<DEADBAND_MAX) ++adcDeadband_B;
-  	  			} else {
-  	  				if (adcDeadband_B>DEADBAND_MIN) --adcDeadband_B;
-  	  			}
-  	  		}
-   	  		adcUpCount_B=0;
-   	  	}
-
+   	  	// reset prev step
    	 	if ((state&S_STEPPING) && adcUpCount_A==0 && adcUpCount_B==0) {
   	  		stepReset();
    	  		state &= ~S_STEPPING;
+   	  		ticksSinceLastStep = 0;
    		}
 
+     	// detect step
    	 	if ((state&S_STEPPING)==0 &&
-   	 			adcData_A>adcRef_A+adcDeadband_A && adcData_B>adcRef_B+adcDeadband_B &&
+   	 			adcData_A>adcRef_A+DEADBAND && adcData_B>adcRef_B+DEADBAND &&
    	 			adcUpCount_A>=upCountRef && adcUpCount_B>=upCountRef) {
 
-			if (adcUpCount_A>adcUpCount_B) {
-				stepA_B();
-			} else {
-				stepB_A();
-			}
+			if (adcUpCount_A>adcUpCount_B) stepA_B();
+			else stepB_A();
 
-			calcUpCountRef(adcUpCount_A+adcUpCount_B);
+			calcUpCountRef();
 			state |= S_STEPPING;
    	  	}
 
-
-    	++loopCount;
-
+   	 	if (ticksSinceLastStep<255) ++ticksSinceLastStep;
 
 
 #ifdef DEBUG
-
-    	debugChar(stepDebug);
-    	debugChar(upCountRef);
-
-    	debugEnd();
+   	 	serialAddByte(stepDebug);
+   	 	serialAddInt(adcData_A);
+   	 	serialAddInt(adcRef_A);
+   	 	serialAddInt(adcUpCount_A);
+    	serialAddByte(upCountRef);
+    	serialEnd();
 #endif
 
 
@@ -319,7 +268,6 @@ int main(void) {
 
 #pragma vector=TIMER0_A0_VECTOR
 __interrupt void timer0_A0_isr (void) {
-//	P1OUT ^= TEST1_OUT;
 	_bic_SR_register_on_exit(CPUOFF);   // trigger code execution in main loop
 }
 
@@ -333,59 +281,3 @@ __interrupt void adc10_isr (void)
 	}
   	_bic_SR_register_on_exit(CPUOFF);	// trigger code execution in main loop
 }
-
-
-
-/*
- *
-// 	  		if (adcUpCount_A>0) printf("Ab:%i:%u:%u ", adcData_B-adcRef_B, adcUpCount_A, adcUpCount_B);  /////////////////
-
-   	  	if (adcData_A>adcRef_A+DEADBAND) {
-   	  		if (adcUpCount_A>COUNT_MAX) {
-//   	  			printf("AU:%u:%u ", adcData_A, adcRef_A);
-   	  			++adcRef_A;
-   	  			adcUpCount_A=0;
-   	  		} else {
-   	  			++adcUpCount_A;
-   	  		}
-   	  		adcDownCount_A=0;
-   	  	} else if (adcData_A<adcRef_A-DEADBAND*2) {
-   	  		if (adcDownCount_A>COUNT_MAX) {
- //  	  			printf("AD:%u:%u ", adcData_A, adcRef_A);
-   	  			--adcRef_A;
-   	  			adcDownCount_A=0;
-   	  		} else {
-   	  			++adcDownCount_A;
-   	  		}
-  	  		adcUpCount_A=0;
-   	  	} else {
-   	  		adcUpCount_A=0;
-   	  		adcDownCount_A=0;
-   	  	}
-
-   	  	if (adcData_B>adcRef_B+DEADBAND) {
-   	  		if (adcUpCount_B>COUNT_MAX) {
-//   	  			printf("BU:%u ", adcUpCount_B);
-   	  			++adcRef_B;
-   	  			adcUpCount_B=0;
-   	  		} else {
-   	  			++adcUpCount_B;
-   	  		}
-   	  		adcDownCount_B=0;
-   	  	} else if (adcData_B<adcRef_B-DEADBAND*2) {
-   	  		if (adcDownCount_B>COUNT_MAX) {
-//   	  			printf("BD:%u ", adcDownCount_B);
-   	  			--adcRef_B;
-   	  			adcDownCount_B=0;
-   	  		} else {
-   	  			++adcDownCount_B;
-   	  		}
-  	  		adcUpCount_B=0;
-   	  	} else {
-   	  		adcUpCount_B=0;
-   	  		adcDownCount_B=0;
-   	  	}
-
-
- *
-*/

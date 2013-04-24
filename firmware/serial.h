@@ -25,6 +25,11 @@ void inline serialAddByte(const unsigned char c) {
 	}
 }
 
+void inline serialAddInt(const unsigned int data) {
+	serialAddByte((unsigned char)(data>>8));
+	serialAddByte((unsigned char)data);
+}
+
 void inline serialEnd() {
 	if (serialBufPos>128 && serialBufPos!=255) {
 		serialBufPos=0;
