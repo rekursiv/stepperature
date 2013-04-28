@@ -12,10 +12,10 @@
 #define S_SM_LAST 3				// last valid mode in list
 #define S_16MHZ BIT2
 #define S_BTN_DN BIT3
-#define S_ADC_IN_A BIT4
-#define S_STEPPING BIT5
+#define S_BTN_HELD BIT4
+#define S_ADC_IN_A BIT5
+#define S_STEPPING BIT6
 
-#define S_TEST BIT7
 
 unsigned char state = 0;
 

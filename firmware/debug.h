@@ -4,7 +4,7 @@
 
 #define DEBUG
 
-#define PIN_DEBUG_OUT BIT7   // output B
+//#define PIN_DEBUG_OUT BIT7   // output B
 
 void inline debugBegin() {
 #ifdef PIN_DEBUG_OUT

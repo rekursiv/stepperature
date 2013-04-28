@@ -18,10 +18,57 @@ int adcOffsetAdj_A = 0;
 int adcOffsetAdj_B = 0;
 
 unsigned char ticksSinceLastStep = 0;
+unsigned int ticksBtnDown = 0;
 
 #ifdef DEBUG
 unsigned char stepDebug = 0;
 #endif
+
+// flash segment D begins at 0x1000
+#define FLASH_STATE		*(char*)	0x1000
+#define FLASH_ADCREF_A	*(int*)		0x1002
+#define FLASH_ADCREF_B	*(int*)		0x1004
+#define FLASH_PW		*(int*)		0x1006
+
+
+void inline readFlash() {
+	if (FLASH_PW==0xBEEF) {
+		state = FLASH_STATE;
+		adcRef_A = FLASH_ADCREF_A;
+		adcRef_B = FLASH_ADCREF_B;
+	}
+}
+
+void inline writeFlash() {
+	 WDTCTL = WDTPW|WDTHOLD;	// Stop watchdog
+	_disable_interrupts();
+
+	FCTL2 = FWKEY|FSSEL1|FN4|FN5;	// MCLK/48 @ 16mhz = 333kHz
+	FCTL3 = FWKEY;					// Clear LOCK
+	FCTL1 = FWKEY|ERASE;
+	FLASH_STATE = 0;				// Initiate erase
+	while(FCTL3&BUSY);
+
+	FCTL3 = FWKEY;					// Clear LOCK
+	FCTL1= FWKEY|WRT;               // Write enable
+
+	// write data
+	FLASH_STATE = state&S_SM_MASK;	// only save step mode
+	while(FCTL3&BUSY);
+	FLASH_ADCREF_A = adcRef_A;
+	while(FCTL3&BUSY);
+	FLASH_ADCREF_B = adcRef_B;
+	while(FCTL3&BUSY);
+	FLASH_PW = 0xBEEF;
+	while(FCTL3&BUSY);
+
+    FCTL1= FWKEY;					// Disable write
+    FCTL3= FWKEY|LOCK;              // Set LOCK
+
+	_enable_interrupts();
+	WDTCTL = WDTPW|WDTCNTCL;	// Restart watchdog
+}
+
 
 
 void inline initOuts() {
@@ -51,7 +98,7 @@ void inline go16xFaster() {
 
 void inline adcTriggerSample(unsigned const int chan) {
 	ADC10CTL0 &= ~ENC;				// Disable ADC
-	ADC10CTL1 &= 0x0fff;  			// clear input channel bits
+	ADC10CTL1 &= 0x0FFF;  			// clear input channel bits
 	ADC10CTL1 |= chan;    			// set input channel bits
 	ADC10CTL0 |= ENC + ADC10SC; 	// Enable and start conversion
 }
@@ -65,8 +112,6 @@ void inline setStepMode(const unsigned char mode) {
 	state |= (mode&S_SM_MASK);
 	if ((state&S_SM_MASK)==S_SM_SERIAL) {
 		_disable_interrupts();
-		P1OUT&=~A_OUT;
-		P1OUT&=~B_OUT;
 		serialEnable();
 		_enable_interrupts();
 	} else {
@@ -74,7 +119,6 @@ void inline setStepMode(const unsigned char mode) {
 		serialDisable();
 		_enable_interrupts();
 	}
-	//  TODO: store state in flash, load on boot
 }
 
 void inline incStepMode() {
@@ -162,9 +206,10 @@ void inline calcUpCountRef() {
 
 
 int main(void) {
-	WDTCTL = WDTPW+WDTCNTCL;   // throw the dog a bone
+	WDTCTL = WDTPW|WDTCNTCL;   // throw the dog a bone
 
     // set stuff up
+    readFlash();
     initOuts();
     initAdc();
     initTimer();
@@ -176,9 +221,8 @@ int main(void) {
 
     while(1) {         //  main loop
 
-    	WDTCTL = WDTPW+WDTCNTCL; // don't forget to pet the dog
-
-    	_bis_SR_register(CPUOFF);  // wait for timer
+    	WDTCTL = WDTPW|WDTCNTCL;	// dog needs attention on every tick, else RESET
+    	_bis_SR_register(CPUOFF);  	// wait for timer
 
     	// wait until we have enough voltage to run at 16mhz
     	if (!(state&S_16MHZ)) {
@@ -192,10 +236,6 @@ int main(void) {
          	continue;  //  BYPASS the rest of the loop until we're running fast enough
     	}
 
-#ifdef DEBUG
-    	serialBegin();
-#endif
-
     	//  acquire data from ADC
      	state |= S_ADC_IN_A;
     	adcTriggerSample(A_IN);
@@ -204,21 +244,45 @@ int main(void) {
    		adcTriggerSample(B_IN);
    	  	_bis_SR_register(CPUOFF);   // wait for sample B
 
-   	 	calcAdcRef_A();
-   	 	calcAdcRef_B();
-
    	  	// handle button press
    	  	if (adcData_A<100) {
+
    	  		if (!(state&S_BTN_DN)) {
-   	  			state |= S_BTN_DN;
+   	  			state|=S_BTN_DN;
+   	  			P1OUT&=~A_OUT;
+   	  			P1OUT&=~B_OUT;
    	  		}
-   	  		continue;
+
+			// button is considered "held" after 1 second
+			if ((state&S_BTN_HELD)) {
+				if (ticksBtnDown%BTN_HELD_BLINK_DELAY==0) {
+	   	  			P1OUT^=A_OUT;
+	   	  			P1OUT^=B_OUT;
+				}
+			} else {
+				if (ticksBtnDown==SAMPLE_RATE) {
+					writeFlash();
+					state|=S_BTN_HELD;
+					P1OUT|=A_OUT;
+				}
+			}
+			++ticksBtnDown;
+
+   	  		continue;		//  BYPASS the rest of the loop while button is down
    	  	} else {
    	  		if ((state&S_BTN_DN)) {
-  	  			state &= ~S_BTN_DN;
-  	  			incStepMode();
+  	  			state&=~S_BTN_DN;
+  	  			P1OUT&=~A_OUT;
+  	  			P1OUT&=~B_OUT;
+  	  			ticksBtnDown = 0;
+  	  			if ((state&S_BTN_HELD)) state&=~S_BTN_HELD;
+  	  			else incStepMode();
    	  		}
    	  	}
+
+   	  	// maintain running average of sample data
+   	 	calcAdcRef_A();
+   	 	calcAdcRef_B();
 
    	  	// count "high" samples
    	  	if (adcData_A>adcRef_A+DEADBAND) ++adcUpCount_A;
@@ -252,11 +316,12 @@ int main(void) {
 
 
 #ifdef DEBUG
+    	serialBegin();
    	 	serialAddByte(stepDebug);
-   	 	serialAddInt(adcData_A);
-   	 	serialAddInt(adcRef_A);
-   	 	serialAddInt(adcUpCount_A);
-    	serialAddByte(upCountRef);
+//   	 	serialAddInt(adcData_A);
+//   	 	serialAddInt(adcData_B);
+//   	 	serialAddInt(adcUpCount_A);
+//    	serialAddByte(upCountRef);
     	serialEnd();
 #endif
 
