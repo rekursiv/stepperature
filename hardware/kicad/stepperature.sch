@@ -1,4 +1,4 @@
-EESchema Schematic File Version 2  date 4/4/2013 6:35:51 PM
+EESchema Schematic File Version 2  date 4/28/2013 5:00:53 PM
 LIBS:power
 LIBS:device
 LIBS:transistors
@@ -38,8 +38,8 @@ Sheet 1 1
 Title "Stepperature"
 Date "5 apr 2013"
 Rev "2"
-Comp "Protoplant Inc."
-Comment1 ""
+Comp "ProtoPlant INC"
+Comment1 "License: CC BY-SA 3.0"
 Comment2 ""
 Comment3 ""
 Comment4 ""

@@ -16,7 +16,8 @@
   (title_block 
     (title Stepperature)
     (rev 2)
-    (company "Protoplant Inc.")
+    (company "ProtoPlant INC")
+    (comment 1 "License: CC BY-SA 3.0")
   )
 
   (layers
