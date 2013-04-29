@@ -49,6 +49,9 @@ unsigned char stepDebug = 0;
 
 
 void inline readFlash() {
+	// MPU ships with random data in flash
+	// so we check for password to prevent
+	// reading corrupt values
 	if (FLASH_PW==0xBEEF) {
 		state = FLASH_STATE;
 		adcRef_A = FLASH_ADCREF_A;
