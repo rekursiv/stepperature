@@ -48,48 +48,6 @@ unsigned char stepDebug = 0;
 #define FLASH_PW		*(int*)		0x1006
 
 
-void inline readFlash() {
-	// MPU ships with random data in flash
-	// so we check for password to prevent
-	// reading corrupt values
-	if (FLASH_PW==0xBEEF) {
-		state = FLASH_STATE;
-		adcRef_A = FLASH_ADCREF_A;
-		adcRef_B = FLASH_ADCREF_B;
-	}
-}
-
-void inline writeFlash() {
-	 WDTCTL = WDTPW|WDTHOLD;	// Stop watchdog
-	_disable_interrupts();
-
-	FCTL2 = FWKEY|FSSEL1|FN4|FN5;	// MCLK/48 @ 16mhz = 333kHz
-	FCTL3 = FWKEY;					// Clear LOCK
-	FCTL1 = FWKEY|ERASE;
-	FLASH_STATE = 0;				// Initiate erase
-	while(FCTL3&BUSY);
-
-	FCTL3 = FWKEY;					// Clear LOCK
-	FCTL1= FWKEY|WRT;               // Write enable
-
-	// write data
-	FLASH_STATE = state&S_SM_MASK;	// only save step mode
-	while(FCTL3&BUSY);
-	FLASH_ADCREF_A = adcRef_A;
-	while(FCTL3&BUSY);
-	FLASH_ADCREF_B = adcRef_B;
-	while(FCTL3&BUSY);
-	FLASH_PW = 0xBEEF;
-	while(FCTL3&BUSY);
-
-    FCTL1= FWKEY;					// Disable write
-    FCTL3= FWKEY|LOCK;              // Set LOCK
-
-	_enable_interrupts();
-	WDTCTL = WDTPW|WDTCNTCL;	// Restart watchdog
-}
-
-
 
 void inline initOuts() {
     P1DIR |= (A_OUT + B_OUT);
@@ -221,6 +179,46 @@ void inline calcUpCountRef() {
 	else if (upCountRef>UP_COUNT_MAX) upCountRef=UP_COUNT_MAX;
 }
 
+void inline readFlash() {
+	// MPU ships with random data in flash
+	// so we check for password to prevent
+	// reading corrupt values
+	if (FLASH_PW==0xBEEF) {
+		setStepMode(FLASH_STATE);
+		adcRef_A = FLASH_ADCREF_A;
+		adcRef_B = FLASH_ADCREF_B;
+	}
+}
+
+void inline writeFlash() {
+	 WDTCTL = WDTPW|WDTHOLD;	// Stop watchdog
+	_disable_interrupts();
+
+	FCTL2 = FWKEY|FSSEL1|FN4|FN5;	// MCLK/48 @ 16mhz = 333kHz
+	FCTL3 = FWKEY;					// Clear LOCK
+	FCTL1 = FWKEY|ERASE;
+	FLASH_STATE = 0;				// Initiate erase
+	while(FCTL3&BUSY);
+
+	FCTL3 = FWKEY;					// Clear LOCK
+	FCTL1= FWKEY|WRT;               // Write enable
+
+	// write data
+	FLASH_STATE = state&S_SM_MASK;	// only save step mode
+	while(FCTL3&BUSY);
+	FLASH_ADCREF_A = adcRef_A;
+	while(FCTL3&BUSY);
+	FLASH_ADCREF_B = adcRef_B;
+	while(FCTL3&BUSY);
+	FLASH_PW = 0xBEEF;
+	while(FCTL3&BUSY);
+
+    FCTL1= FWKEY;					// Disable write
+    FCTL3= FWKEY|LOCK;              // Set LOCK
+
+	_enable_interrupts();
+	WDTCTL = WDTPW|WDTCNTCL;	// Restart watchdog
+}
 
 
 
